@@ -19,6 +19,7 @@ private:
   horizontalMovement direction = horizontalMovement::None;
   bool jumping = false;
   bool collide = false;
+  bool freeFall = false;
 public:
   PlayerObject(unsigned int x, unsigned int y){
     rect.setFillColor(sf::Color::Green);
@@ -26,18 +27,19 @@ public:
   }
 
   void update(){
-    if(collide){
+    if(freeFall) acceleration={0,0.09};
+	else{
+		collide=true;
+	}
+	if(collide){
       acceleration.y = 0;
 	  velocity.y = 0;
-    }
-    else{
-      acceleration={0,0.5};
     }
 	if(jumping){
       acceleration={0,-0.9};
       collide = false;
     }
-    if(velocity.y <= -6.2){
+    if(velocity.y <= -6.0){
       jumping=false;
     }
 	//horizontal movement
@@ -67,11 +69,17 @@ public:
   void setCollisionStatus(bool colliding){
     collide=colliding;
   }
+  void setFreeFallStatus(bool free){
+	  freeFall=free;
+  }
   bool getJumpStatus(){
     return jumping;
   }
   bool getCollisionStatus(){
     return collide;
+  }
+  bool getFreeFallStatus(){
+	  return freeFall;
   }
   
   void setMovingRight(bool movingRight){
