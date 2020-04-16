@@ -1,6 +1,8 @@
 #include <SFML/Window.hpp>
 #include "PlayerObject.hpp"
 #include <array>
+#include <cmath>
+
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
@@ -14,6 +16,11 @@ int main()
     sf::RectangleShape platform2(sf::Vector2f(250,50));
     platform2.setPosition(251,280);
     platform2.setFillColor(sf::Color::Yellow);
+	
+	sf::RectangleShape movingPlatform(sf::Vector2f(250,25));
+	movingPlatform.setPosition(510,260);
+	movingPlatform.setFillColor(sf::Color::Green);
+	double increment=0;
 
 
     sf::Font font;
@@ -52,23 +59,26 @@ int main()
 		}
 
         //handle collision
-        if(player.getGlobalBounds().intersects(platform.getGlobalBounds())){
-          player.setCollisionStatus(true);
+        if(player.getGlobalBounds().intersects(platform.getGlobalBounds()) || player.getGlobalBounds().intersects(platform2.getGlobalBounds()) || player.getGlobalBounds().intersects(movingPlatform.getGlobalBounds())){
+          player.setFreeFallStatus(false);
         }
-		else player.setCollisionStatus(false);
-        if(player.getGlobalBounds().intersects(platform2.getGlobalBounds())){
-          player.setCollisionStatus(true);
-        }
-		else player.setCollisionStatus(false);
-
+		else{
+			player.setFreeFallStatus(true);
+		}
         window.clear(sf::Color::Black);
         player.update();
-        text.setString("Position: "+to_string(player.getPosition())+"\nVelocity: "+to_string(player.getVelocity())+"\nAcceleration: "+to_string(player.getAcceleration()) + "\nJumping: "+std::to_string(player.getJumpStatus())+"\nColliding: "+std::to_string(player.getCollisionStatus()) + "\nMovement Direction: "+player.getMovementDirection());
+		//update movingPlatform
+		movingPlatform.setPosition(510,150*std::cos(increment)+350);
+		increment+=0.01;
+        text.setString("Position: "+to_string(player.getPosition())+"\nVelocity: "+to_string(player.getVelocity())+"\nAcceleration: "+to_string(player.getAcceleration()) + "\nJumping: "+std::to_string(player.getJumpStatus())+"\nColliding: "+std::to_string(player.getCollisionStatus()) + "\nMovement Direction: "+player.getMovementDirection() + "\nFree Fall Status: "+std::to_string(player.getFreeFallStatus()));
         window.draw(player.getPlayerSprite());
         window.draw(platform);
         window.draw(platform2);
+		window.draw(movingPlatform);
         window.draw(text);
         window.display();
     }
     return 0;
 }
+
+
