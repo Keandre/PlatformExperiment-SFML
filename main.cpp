@@ -1,6 +1,6 @@
 #include <SFML/Window.hpp>
 #include "PlayerObject.hpp"
-#include <array>
+#include <vector>
 #include <cmath>
 
 int main()
@@ -16,15 +16,17 @@ int main()
     sf::RectangleShape platform2(sf::Vector2f(250,50));
     platform2.setPosition(251,280);
     platform2.setFillColor(sf::Color::Yellow);
-	
-	sf::RectangleShape movingPlatform(sf::Vector2f(250,25));
-	movingPlatform.setPosition(510,260);
-	movingPlatform.setFillColor(sf::Color::Green);
-	double increment=0;
+
+	  sf::RectangleShape movingPlatform(sf::Vector2f(250,25));
+	  movingPlatform.setPosition(510,200);
+	  movingPlatform.setFillColor(sf::Color::Green);
+	  double increment=0;
+
+    std::vector<sf::RectangleShape*> platforms={&platform,&platform2};
 
 
     sf::Font font;
-    if(!font.loadFromFile("Roboto-Regular.ttf")){}
+    if(!font.loadFromFile("LucidaBrightRegular.ttf")){}
     sf::Text text;
     text.setFont(font);
     text.setCharacterSize(14);
@@ -43,7 +45,7 @@ int main()
 			  }
 			  if(event.key.code == sf::Keyboard::A){
 				  player.setMovingLeft(true);
-			  } 
+			  }
 			}
 			if(event.type == sf::Event::KeyReleased){
 				if(event.key.code == sf::Keyboard::D){
@@ -57,28 +59,32 @@ int main()
 				window.close();
 			}
 		}
-
+    movingPlatform.setPosition(510,-150*std::cos(increment)+350);
+    increment+=0.01;
         //handle collision
-        if(player.getGlobalBounds().intersects(platform.getGlobalBounds()) || player.getGlobalBounds().intersects(platform2.getGlobalBounds()) || player.getGlobalBounds().intersects(movingPlatform.getGlobalBounds())){
-          player.setFreeFallStatus(false);
+      for(const auto platform: platforms){
+        if(player.getGlobalBounds().intersects(platform->getGlobalBounds())){
+          player.setCollisionStatus(true);
+          break;
         }
-		else{
-			player.setFreeFallStatus(true);
-		}
-        window.clear(sf::Color::Black);
-        player.update();
-		//update movingPlatform
-		movingPlatform.setPosition(510,150*std::cos(increment)+350);
-		increment+=0.01;
-        text.setString("Position: "+to_string(player.getPosition())+"\nVelocity: "+to_string(player.getVelocity())+"\nAcceleration: "+to_string(player.getAcceleration()) + "\nJumping: "+std::to_string(player.getJumpStatus())+"\nColliding: "+std::to_string(player.getCollisionStatus()) + "\nMovement Direction: "+player.getMovementDirection() + "\nFree Fall Status: "+std::to_string(player.getFreeFallStatus()));
-        window.draw(player.getPlayerSprite());
-        window.draw(platform);
-        window.draw(platform2);
-		window.draw(movingPlatform);
-        window.draw(text);
-        window.display();
-    }
+        else player.setCollisionStatus(false);
+      }
+      if(player.getGlobalBounds().intersects(movingPlatform.getGlobalBounds())){
+        player.setOnPlatformStatus(true);
+        player.setPosition(player.getPosition().x,movingPlatform.getPosition().y - 8);
+      }
+      else player.setOnPlatformStatus(false);
+      window.clear(sf::Color::Black);
+      player.update();
+		  //update movingPlatform
+      text.setString("Position: "+to_string(player.getPosition())+"\nVelocity: "+to_string(player.getVelocity())+"\nAcceleration: "+to_string(player.getAcceleration()) + "\nJumping: "+std::to_string(player.getJumpStatus())+"\nColliding: "+std::to_string(player.getCollisionStatus()) + "\nMovement Direction: "+player.getMovementDirection());
+      window.draw(player.getPlayerSprite());
+      for(const auto platform:platforms){
+        window.draw(*platform);
+      }
+      window.draw(movingPlatform);
+      window.draw(text);
+      window.display();
+  }
     return 0;
 }
-
-

@@ -14,12 +14,13 @@ class PlayerObject{
 private:
   sf::RectangleShape rect{sf::Vector2f(10,10)};
   sf::Vector2f velocity{0,0};
-  sf::Vector2f acceleration{0,0.05};
+  sf::Vector2f gravity{0,0.08};
+  sf::Vector2f acceleration{0,0.08};
   sf::Vector2f horizontalAcceleration{0.5,0};
   horizontalMovement direction = horizontalMovement::None;
   bool jumping = false;
   bool collide = false;
-  bool freeFall = false;
+  bool onPlatform = false;
 public:
   PlayerObject(unsigned int x, unsigned int y){
     rect.setFillColor(sf::Color::Green);
@@ -27,20 +28,18 @@ public:
   }
 
   void update(){
-    if(freeFall) acceleration={0,0.09};
-	else{
-		collide=true;
-	}
 	if(collide){
       acceleration.y = 0;
 	  velocity.y = 0;
     }
+    else acceleration=gravity;
 	if(jumping){
-      acceleration={0,-0.9};
+      acceleration={0,-0.7};
       collide = false;
     }
-    if(velocity.y <= -6.0){
+    if(velocity.y <= -3.0){
       jumping=false;
+      acceleration=gravity;
     }
 	//horizontal movement
 	if(direction==horizontalMovement::Right){
@@ -54,13 +53,25 @@ public:
 	else{
 		velocity.x = 0;
 	}
+  if(onPlatform){
+    if(!jumping){
+      velocity.y=0;
+      acceleration.y=0;
+    }
+    else{
+      velocity.y=-1.5;
+      acceleration.y=-0.7;
+    }
+    rect.move(velocity);
+  }
 	velocity += acceleration;
     //change acceleration back to normal
 
-    rect.move(velocity);
+    if(!onPlatform)rect.move(velocity);
+    if(rect.getPosition().y>600)rect.setPosition(0,0);
   }
   void changeJumpStatus(bool jump){
-    if(collide) {
+    if(collide||onPlatform) {
       jumping=jump;
       collide=false;
     }
@@ -69,19 +80,12 @@ public:
   void setCollisionStatus(bool colliding){
     collide=colliding;
   }
-  void setFreeFallStatus(bool free){
-	  freeFall=free;
-  }
   bool getJumpStatus(){
     return jumping;
   }
   bool getCollisionStatus(){
     return collide;
   }
-  bool getFreeFallStatus(){
-	  return freeFall;
-  }
-  
   void setMovingRight(bool movingRight){
 	  if(movingRight){
 		  direction=horizontalMovement::Right;
@@ -98,7 +102,7 @@ public:
 		  direction=horizontalMovement::None;
 	  }
   }
-	
+
   std::string getMovementDirection(){
 	switch(this->direction){
 		case horizontalMovement::Right:
@@ -111,7 +115,7 @@ public:
 			return "Right";
 	}
   }
-	  
+
   sf::RectangleShape getPlayerSprite(){
     return rect;
   }
@@ -129,5 +133,14 @@ public:
   }
   sf::FloatRect getGlobalBounds(){
     return rect.getGlobalBounds();
+  }
+  void setPosition(float a, float b){
+    rect.setPosition(a,b);
+  }
+  void setOnPlatformStatus(bool plat){
+    onPlatform=plat;
+  }
+  bool getOnPlatformStatus(){
+    return onPlatform;
   }
 };
